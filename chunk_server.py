@@ -14,10 +14,12 @@ import gfs_pb2
 
 from common import Config, Status
 
+
 class ChunkServer:
     """
     A chunk is a file in this case
     """
+
     def __init__(self, port, root) -> None:
         self.port = port
         self.root = root
@@ -27,7 +29,7 @@ class ChunkServer:
     def create(self, chunk_handle):
         try:
             # TODO: better way to make a file
-            open(os.path.join(self.root, chunk_handle), 'w').close()
+            open(os.path.join(self.root, chunk_handle), "w").close()
 
         except Exception as e:
             return Status(-1, f"ERROR : {e}")
@@ -37,13 +39,15 @@ class ChunkServer:
 
     def get_chunk_space(self, chunk_handle) -> tuple[int, Status]:
         try:
-            chunk_space = str(Config.chunk_size - os.stat(os.path.join(self.root, chunk_handle)).st_size)
+            chunk_space = str(
+                Config.chunk_size
+                - os.stat(os.path.join(self.root, chunk_handle)).st_size
+            )
 
         except Exception as e:
             return None, Status(-1, f"ERROR : {e}")
         else:
             return chunk_space, Status(0, "")
-
 
     def append(self, chunk_handle, data) -> Status:
         try:
@@ -67,14 +71,15 @@ class ChunkServer:
         else:
             return Status(0, ret)
 
+
 class ChunkServerToClientServicer(gfs_pb2_grpc.ChunkServerToClientServicer):
-    def __init__(self, ckser : ChunkServer) -> None:
+    def __init__(self, ckser: ChunkServer) -> None:
         self.ckser = ckser
         self.port = self.ckser.port
 
     def Create(self, request, context):
         chunk_handle = request.st
-        print(f"{self.port} CreateChunk {chunk_handle}") #TODO: use logger
+        print(f"{self.port} CreateChunk {chunk_handle}")  # TODO: use logger
         status: Status = self.ckser.create(chunk_handle)
         return gfs_pb2.String(st=status.e)
 
@@ -99,13 +104,19 @@ class ChunkServerToClientServicer(gfs_pb2_grpc.ChunkServerToClientServicer):
         status = self.ckser.read(chunk_handle, start_offset, numbytes)
         return gfs_pb2.String(st=status.e)
 
+
 def start(port):
-    """ Starts a single server (process with 3 worker) """
+    """Starts a single server (process with 3 worker)"""
+    # makes a base root dir which will have the dirs for each chunk server
+    if not os.path.isdir(Config.chunkserver_root):
+        os.mkdir(Config.chunkserver_root)
 
     print(f"Starting Chunk server on {port}")
     ckser = ChunkServer(port=port, root=os.path.join(Config.chunkserver_root, port))
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=3))
-    gfs_pb2_grpc.add_ChunkServerToClientServicer_to_server(ChunkServerToClientServicer(ckser), server)
+    gfs_pb2_grpc.add_ChunkServerToClientServicer_to_server(
+        ChunkServerToClientServicer(ckser), server
+    )
     server.add_insecure_port(f"[::]:{port}")
     server.start()
     try:
@@ -113,6 +124,7 @@ def start(port):
             time.sleep(200000)
     except KeyboardInterrupt:
         server.stop(0)
+
 
 if __name__ == "__main__":
     for loc in Config.chunkserver_locs:

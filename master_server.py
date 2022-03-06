@@ -11,25 +11,29 @@ import gfs_pb2
 
 from common import Config, Status
 
+
 def choose_locs() -> list:
-    """ Choose 3 locs randomly """
+    """Choose 3 locs randomly"""
     total = len(Config.chunkserver_locs)
     st = random.randint(0, total - 1)
     return [
         Config.chunkserver_locs[st],
-        Config.chunkserver_locs[(st+1)%total],
-        Config.chunkserver_locs[(st+2)%total],
+        Config.chunkserver_locs[(st + 1) % total],
+        Config.chunkserver_locs[(st + 2) % total],
     ]
+
 
 class Chunk:
     def __init__(self) -> None:
         self.locs = []
 
+
 class File:
     def __init__(self, file_path: str) -> None:
-        """ Since a file can be broken in multiple parts, it can be in different chunks"""
+        """Since a file can be broken in multiple parts, it can be in different chunks"""
         self.file_path = file_path
         self.chunks: dict[str, Chunk] = OrderedDict()
+
 
 class MetaData:
     def __init__(self) -> None:
@@ -45,10 +49,9 @@ class MetaData:
         return latest_chunk_handle
 
     def get_chunk_locs(self, chunk_handle) -> list:
-        """ get the chunk locs for a chunk handle """
+        """get the chunk locs for a chunk handle"""
         file_path = self.ch2fp[chunk_handle]
         return self.files[file_path].chunks[chunk_handle].locs
-
 
     def create_new_file(self, file_path, chunk_handle) -> Status:
         if file_path in self.files:
@@ -57,7 +60,6 @@ class MetaData:
         self.files[file_path] = fl
         status = self.create_new_chunk(file_path, -1, chunk_handle)
         return status
-
 
     def create_new_chunk(self, file_path, prev_chunk_handle, chunk_handle) -> Status:
         if file_path not in self.files:
@@ -68,10 +70,12 @@ class MetaData:
             "file > 1 chunk"
             latest_chunk = self.get_latest_chunk(file_path)
 
-            # Chunk already created 
+            # Chunk already created
             if latest_chunk != prev_chunk_handle:
-                return Status(-3, f"ERROR : New chunk already created {file_path} {chunk_handle}")
-        
+                return Status(
+                    -3, f"ERROR : New chunk already created {file_path} {chunk_handle}"
+                )
+
         chunk = Chunk()
         self.files[file_path].chunks[chunk_handle] = chunk
         locs = choose_locs()
@@ -99,7 +103,9 @@ class MasterServer:
         if file_path not in self.meta.files:
             return Status(-1, "ERROR: file {} doesn't exist".format(file_path))
         else:
-            return Status(0, "SUCCESS: file {} exists and not deleted".format(file_path))
+            return Status(
+                0, "SUCCESS: file {} exists".format(file_path)
+            )
 
     def list_files(self, file_path):
         file_list = []
@@ -118,7 +124,7 @@ class MasterServer:
         locs = self.meta.files[file_path].chunks[chunk_handle].locs
         return chunk_handle, locs, status
 
-    def append_file(self, file_path)-> tuple[str, list, Status]:
+    def append_file(self, file_path) -> tuple[str, list, Status]:
         status = self.check_valid_file(file_path)
 
         if status.v != 0:
@@ -134,7 +140,6 @@ class MasterServer:
         status = self.meta.create_new_chunk(file_path, prev_chunk_handle, chunk_handle)
         locs = self.meta.files[file_path].chunks[chunk_handle].locs
         return chunk_handle, locs, status
-
 
     def read_file(self, file_path, offset, numbytes):
         status = self.check_valid_file(file_path)
@@ -157,7 +162,7 @@ class MasterServer:
             end_chunk = end_offset // chunk_size
             end_offset = end_offset % chunk_size
 
-        all_chunk_handles = all_chunks[start_chunk:end_chunk+1]
+        all_chunk_handles = all_chunks[start_chunk : end_chunk + 1]
         ret = []
         for idx, chunk_handle in enumerate(all_chunk_handles):
             if idx == 0:
@@ -169,10 +174,11 @@ class MasterServer:
             else:
                 enof = chunk_size - 1
             loc = self.meta.files[file_path].chunks[chunk_handle].locs[0]
-            ret.append(chunk_handle + "*" + loc + "*" + str(stof) + "*" + str(enof - stof + 1))
+            ret.append(
+                chunk_handle + "*" + loc + "*" + str(stof) + "*" + str(enof - stof + 1)
+            )
         ret = "|".join(ret)
         return Status(0, ret)
-
 
 
 class MasterServerToClientServicer(gfs_pb2_grpc.MasterServerToClientServicer):
@@ -197,7 +203,6 @@ class MasterServerToClientServicer(gfs_pb2_grpc.MasterServerToClientServicer):
         st = chunk_handle + "|" + "|".join(locs)
         return gfs_pb2.String(st=st)
 
-
     def AppendFile(self, request, context):
         file_path = request.st
         print(f"Command Append {file_path}")
@@ -210,9 +215,12 @@ class MasterServerToClientServicer(gfs_pb2_grpc.MasterServerToClientServicer):
         return gfs_pb2.String(st=st)
 
     def CreateChunk(self, request, context):
+        """returns: chunk_handle|127.0.0.1|127.0.0.1|127.0.0.1"""
         file_path, prev_chunk_handle = request.st.split("|")
         print(f"Command CreateChunk {file_path} {prev_chunk_handle}")
-        chunk_handle, locs, status = self.master.create_chunk(file_path, prev_chunk_handle)
+        chunk_handle, locs, status = self.master.create_chunk(
+            file_path, prev_chunk_handle
+        )
         # TODO: check status
         st = chunk_handle + "|" + "|".join(locs)
         return gfs_pb2.String(st=st)
@@ -228,9 +236,11 @@ def serve():
     master = MasterServer()
 
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=3))
-    gfs_pb2_grpc.add_MasterServerToClientServicer_to_server(MasterServerToClientServicer(master=master), server)
+    gfs_pb2_grpc.add_MasterServerToClientServicer_to_server(
+        MasterServerToClientServicer(master=master), server
+    )
     # TODO get port from config
-    server.add_insecure_port('[::]:50051')
+    server.add_insecure_port("[::]:50051")
     server.start()
     try:
         while True:
@@ -238,17 +248,5 @@ def serve():
     except KeyboardInterrupt:
         server.stop(0)
 
-        
-
-
-
-
-    
-
-
-
-
-        
-
-
-
+if __name__ == "__main__":
+    serve()

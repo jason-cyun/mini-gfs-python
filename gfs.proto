@@ -15,6 +15,7 @@ service ChunkServerToClient {
     rpc GetChunkSpace(String) returns (String) {}
     rpc Append(String) returns (String) {}
     rpc Read(String) returns (String) {} 
+    rpc AddData(String) returns (String) {}
     
 }
 
@@ -24,4 +25,27 @@ message String {
 
 message Empty {
 
+}
+
+service Health {
+    rpc Check(HealthCheckRequest) returns (HealthCheckResponse) {}
+}
+
+message HealthCheckRequest {
+    string lease = 1;
+}
+
+message HealthCheckResponse {
+
+    string status = 1;
+}
+
+
+service PrimaryToClient{
+    rpc Commit (String) returns (String) {}
+}
+
+//  not used
+message PrimaryToClientRequest {
+    string clientid = 1;
 }

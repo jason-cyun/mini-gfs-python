@@ -1,6 +1,7 @@
 # Configs and common utils
 
 from dataclasses import dataclass
+import enum
 
 
 class Config:
@@ -25,3 +26,9 @@ def isInt(e):
         return False
     else:
         return True
+
+
+class HeartBeatStatus(enum.Enum):
+    ok = "SERVING"
+    error = "NOT_SEVING"
+    unknown = "UNKNOWN"  # not currently used

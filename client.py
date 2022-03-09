@@ -1,5 +1,4 @@
-from dataclasses import dataclass
-import os
+import uuid
 import sys
 from turtle import st
 from urllib import request
@@ -16,13 +15,15 @@ def list_files(file_path):
     with grpc.insecure_channel(master) as channel:
         stub = gfs_pb2_grpc.MasterServerToClientStub(channel)
         request = gfs_pb2.String(st=file_path)
-        master_response : str = stub.ListFiles(request).st
+        master_response: str = stub.ListFiles(request).st
         fps = master_response.split("|")
         print(fps)
 
 
 def create_file(file_path):
-
+    """TODO: Will the primary create the file or client?
+    It makes sense for the client to directly command the chunks to make the files since making a file is idempotent
+    """
     master = f"localhost:{Config.master_loc}"
     with grpc.insecure_channel(master) as channel:
         stub = gfs_pb2_grpc.MasterServerToClientStub(channel)
@@ -44,8 +45,12 @@ def create_file(file_path):
             print(f"Response from chunkserver {loc} : {cs_resp}")
 
 
-def append_file(file_path, input_data):
-    """reccursively append file"""
+def append_file(file_path, input_data, clientid):
+    """reccursively append
+
+    Send all the data to all the files and then request the primary to write/commit
+
+    """
     master = f"localhost:{Config.master_loc}"
     with grpc.insecure_channel(master) as channel:
         stub = gfs_pb2_grpc.MasterServerToClientStub(channel)
@@ -60,13 +65,16 @@ def append_file(file_path, input_data):
     data = master_resp.split("|")
     chunk_handle = data[0]
 
+    # Send data to the chunks
     for loc in data[1:]:
         chunk_addr = f"localhost:{loc}"
         with grpc.insecure_channel(chunk_addr) as channel:
             stub = gfs_pb2_grpc.ChunkServerToClientStub(channel)
             request = gfs_pb2.String(st=chunk_handle)
             cs_resp: str = stub.GetChunkSpace(request).st
-            print(f"Response from chunk {loc} : {cs_resp}")
+            print(
+                f"Response from chunk {loc} : chunk space :{cs_resp} chunk handle {chunk_handle}"
+            )
 
             if cs_resp.startswith("ERROR"):
                 return -1
@@ -74,17 +82,37 @@ def append_file(file_path, input_data):
             rem_space = int(cs_resp)
 
             if rem_space >= input_size:
-                st = chunk_handle + "|" + input_data
-                req = gfs_pb2.String(st=st)
-                cs_resp = stub.Append(req).st
+                st = clientid + "||" + chunk_handle + "|" + input_data
+                request = gfs_pb2.String(st=st)
+                cs_resp = stub.AddData(request).st
 
             else:
                 inp1, inp2 = input_data[:rem_space], input_data[rem_space:]
-                st = chunk_handle + "|" + inp1
+                st = clientid + "||" + chunk_handle + "|" + inp1
                 req = gfs_pb2.String(st=st)
-                cs_resp = stub.Append(req).st
+                cs_resp = stub.AddData(req).st
 
+            # TODO cs_resp error handling
             print(f"Response from chunk server {loc} : {cs_resp}")
+
+    # send Write message to primary
+    primary_loc = data[1]
+    primary_addr = f"localhost:{primary_loc}"
+    with grpc.insecure_channel(primary_addr) as channel:
+        stub = gfs_pb2_grpc.PrimaryToClientStub(channel)
+        st = clientid + "|" + "*".join(data[2:])
+        req = gfs_pb2.String(st=st)
+        print("* Sending commit request to primary")
+        primary_resp: str = stub.Commit(req).st
+    # TODO ADD print statement
+
+    if primary_resp.startswith("-2"):
+        print(f"Response from chunk server {primary_loc}: {primary_resp}")
+        # TODO call master to get primary
+        return -2
+    elif primary_resp.startswith("-1"):
+        print("All chunk servers did not write, retrying")
+        # TODO NOW recussirvely call
 
     if rem_space >= input_size:
         return 0
@@ -97,6 +125,7 @@ def append_file(file_path, input_data):
         master_resp: str = stub.CreateChunk(req).st
         print(f"Response from master: {master_resp}")
 
+    # Create chunks in chunk server
     data = master_resp.split("|")
     chunk_handle = data[0]
     for loc in data[1:]:
@@ -106,8 +135,8 @@ def append_file(file_path, input_data):
             request = gfs_pb2.String(st=chunk_handle)
             cs_resp: str = stub.Create(request).st
             print(f"Response from chunk server {loc} : {cs_resp}")
-
-    append_file(file_path, inp2)
+    # creating new clinetid so that new data has an unique id
+    append_file(file_path, inp2, uuid.uuid4().hex[:8])
     return 0
 
 
@@ -133,17 +162,20 @@ def read_file(file_path, offset, numbytes):
             stub = gfs_pb2_grpc.ChunkServerToClientStub(channel)
             st = chunk_handle + "|" + start_offset + "|" + numbytes
             req = gfs_pb2.String(st=st)
-            cs_resp: str = stub.Read(request).st
+            cs_resp: str = stub.Read(req).st
             print(f"Response from chunk server {loc} {cs_resp}")
 
         if cs_resp.startswith("ERROR"):
             return -1
         file_content += cs_resp
 
-    print(file_content)
+    print(f"file_content: {file_content}")
 
 
 def run(command: str, file_path: str, args: list):
+
+    clientid = uuid.uuid4().hex[:8]
+
     if command == "create":
         create_file(file_path)
     elif command == "list":
@@ -152,7 +184,7 @@ def run(command: str, file_path: str, args: list):
         if len(args) == 0:
             print("No input given to append")
         else:
-            append_file(file_path, args[0])
+            append_file(file_path, args[0], clientid)
 
     elif command == "read":
         if len(args) < 2 or not isInt(args[0]) or not isInt(args[1]):

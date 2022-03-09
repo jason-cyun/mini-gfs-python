@@ -1,5 +1,6 @@
+import grp
+import string
 import time
-from tkinter.messagebox import RETRY
 import uuid
 import random
 from concurrent import futures
@@ -61,6 +62,27 @@ class MetaData:
         status = self.create_new_chunk(file_path, -1, chunk_handle)
         return status
 
+    def _check_health(self, chunkserver_addr, lease) -> string:
+        """Piggybacking the lease time with the heatbeat message"""
+        with grpc.insecure_channel(chunkserver_addr) as channel:
+            stub = gfs_pb2_grpc.HealthStub(channel)
+            req = gfs_pb2.HealthCheckRequest(lease=str(lease))
+            cs_resp = stub.Check(req).status
+        return cs_resp
+
+    def check_health_all_loc(self, locs):
+        """sets the 0th loc as primary. Does not actually change the loc if health is not good"""
+        for i, loc in enumerate(locs):
+            chunkserver_addr = f"localhost:{loc}"
+            lease = -1
+            if i == 0:
+                # 0th index is the primary which gets a 60 sec lease
+                lease = str(int(time.time()) + 60)
+
+            heartbeat_msg = self._check_health(chunkserver_addr, lease)
+
+            print(f"HeartBeat msg from {loc} : Status {heartbeat_msg}")
+
     def create_new_chunk(self, file_path, prev_chunk_handle, chunk_handle) -> Status:
         if file_path not in self.files:
             return Status(-2, f"ERROR : New chunk file does not exist: {file_path}")
@@ -79,6 +101,20 @@ class MetaData:
         chunk = Chunk()
         self.files[file_path].chunks[chunk_handle] = chunk
         locs = choose_locs()
+
+        # TODO: change the server if status is not found or NOT_SERVING, currently it just leases the primary
+        self.check_health_all_loc(locs)
+        # for i, loc in enumerate(locs):
+        #     chunkserver_addr = f"localhost:{loc}"
+        #     lease = -1
+        #     if i == 0:
+        #         # 0th index is the primary which gets a 60 sec lease
+        #         lease = str(int(time.time()) + 60)
+
+        #     heartbeat_msg = self._check_health(chunkserver_addr, lease)
+
+        #     print(f"HeartBeat msg from {loc} : Status {heartbeat_msg}")
+
         for loc in locs:
             self.locs_dict[loc].append(chunk_handle)
             self.files[file_path].chunks[chunk_handle].locs.append(loc)
@@ -103,9 +139,7 @@ class MasterServer:
         if file_path not in self.meta.files:
             return Status(-1, "ERROR: file {} doesn't exist".format(file_path))
         else:
-            return Status(
-                0, "SUCCESS: file {} exists".format(file_path)
-            )
+            return Status(0, "SUCCESS: file {} exists".format(file_path))
 
     def list_files(self, file_path):
         file_list = []
@@ -122,6 +156,7 @@ class MasterServer:
             return None, None, status
 
         locs = self.meta.files[file_path].chunks[chunk_handle].locs
+        self.meta.check_health_all_loc(locs)
         return chunk_handle, locs, status
 
     def append_file(self, file_path) -> tuple[str, list, Status]:
@@ -132,6 +167,9 @@ class MasterServer:
 
         latest_chunk_handle = self.meta.get_latest_chunk(file_path)
         locs = self.meta.get_chunk_locs(latest_chunk_handle)
+        # checks health ands sets primary
+        self.meta.check_health_all_loc(locs)
+
         status = Status(0, "Append Handled")
         return latest_chunk_handle, locs, status
 
@@ -247,6 +285,7 @@ def serve():
             time.sleep(2000)
     except KeyboardInterrupt:
         server.stop(0)
+
 
 if __name__ == "__main__":
     serve()

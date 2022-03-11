@@ -148,8 +148,13 @@ class ChunkServerToClientServicer(gfs_pb2_grpc.ChunkServerToClientServicer):
         return gfs_pb2.String(st=status.e)
 
     def AddData(self, request, context):
-        """TODO: add || with clientid"""
         clientid, data = request.st.split("||")
+        chunk_handle, dataFrmClient = data.split("|")
+        chunk_space, status = self.ckser.get_chunk_space(chunk_handle)
+        if int(chunk_space)<len(dataFrmClient):
+            # not enough chunkspace
+            status = Status(-1, "-1 ERROR : Not enough chunk space")
+            return gfs_pb2.String(st=status.e)
         status = self.ckser.addData(clientid, data)
         print(f"Locally stored data for clientid {clientid} : data {data}")
         return gfs_pb2.String(st=status.e)

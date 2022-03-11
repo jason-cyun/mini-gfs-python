@@ -93,6 +93,12 @@ def append_file(file_path, input_data, clientid):
                 cs_resp = stub.AddData(req).st
 
             # TODO cs_resp error handling
+            if cs_resp.startswith("-1"):
+                print(f"Response from chunk server {loc}: {cs_resp}")
+                print("Retrying...")
+                append_file(file_path, input_data, clientid)
+
+
             print(f"Response from chunk server {loc} : {cs_resp}")
 
     # send Write message to primary

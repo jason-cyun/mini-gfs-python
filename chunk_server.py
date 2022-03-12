@@ -104,6 +104,20 @@ class ChunkServer:
         except Exception as e:
             return Status(-1, f"Error {e}")
 
+    def hasEnoughSpace(self, clientid):
+        """ to check if the data can be commited (if space exists)"""
+        data = self.client2data[clientid][0]
+        chunk_handle, dataFrmClient = data.split("|")
+        chunk_space, status = self.get_chunk_space(chunk_handle)
+        if int(chunk_space)<len(dataFrmClient):
+            # not enough chunkspace
+            status = Status(-1, "-1 ERROR : Not enough chunk space")
+            return status
+
+        status = Status(0, "0 Enough space in chunk for data")
+        return status
+
+
 
 class ChunkServerToClientServicer(gfs_pb2_grpc.ChunkServerToClientServicer):
     def __init__(self, ckser: ChunkServer) -> None:
@@ -181,6 +195,11 @@ class PrimaryToClientServicer(gfs_pb2_grpc.PrimaryToClientServicer):
             return gfs_pb2.String(st="-2 Not Primary")
 
         clientid, locs = request.st.split("|")
+        enough_space_in_chunk_status: Status = self.ckser.hasEnoughSpace(clientid)
+        if enough_space_in_chunk_status.v != 0:
+            status = Status(-1, "-1 ERROR : Not enough chunk space")
+            return gfs_pb2.String(st=status.e)
+
         locs = locs.split("*")
         status = 0
         print(f"Primary {self.port} appending data to itself")
@@ -226,7 +245,7 @@ def start(port):
 
     print(f"Starting Chunk server on {port}")
     ckser = ChunkServer(port=port, root=os.path.join(Config.chunkserver_root, port))
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=3))
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
     gfs_pb2_grpc.add_ChunkServerToClientServicer_to_server(
         ChunkServerToClientServicer(ckser), server
     )

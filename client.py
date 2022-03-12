@@ -118,7 +118,7 @@ def append_file(file_path, input_data, clientid):
         return -2
     elif primary_resp.startswith("-1"):
         print("All chunk servers did not write, retrying")
-        # TODO NOW recussirvely call
+        append_file(file_path, input_data, uuid.uuid4().hex[:8])
 
     if rem_space >= input_size:
         return 0
@@ -147,7 +147,7 @@ def append_file(file_path, input_data, clientid):
 
 
 def read_file(file_path, offset, numbytes):
-    """reads from only one chunk"""
+    """reads from all chunk?"""
     master = f"localhost:{Config.master_loc}"
     with grpc.insecure_channel(master) as channel:
         stub = gfs_pb2_grpc.MasterServerToClientStub(channel)
@@ -176,6 +176,43 @@ def read_file(file_path, offset, numbytes):
         file_content += cs_resp
 
     print(f"file_content: {file_content}")
+
+
+def write_file(file_path, offset, input_data):
+    raise NotImplementedError
+#     """Can only write to existing files"""
+#     master = f"localhost:{Config.master_loc}"
+#     numbytes = len(input_data)
+#     with grpc.insecure_channel(master) as channel:
+#         stub = gfs_pb2_grpc.MasterServerToClientStub(channel)
+#         st = file_path + "|" + str(offset) + "|" + str(numbytes)
+#         req = gfs_pb2.String(st=st)
+#         master_resp: str = stub.ReadFile(req).st
+#         print(f"Response from master: {master_resp}")
+
+#     if master_resp.startswith("ERROR"):
+#         return -1
+
+#     file_content = ""
+#     data = master_resp.split("|")
+#     for chunk_info in data:
+#         chunk_handle, loc, start_offset, numbytes = chunk_info.split("*")
+#         chunk_addr = f"localhost:{loc}"
+#         with grpc.insecure_channel(chunk_addr) as channel:
+#             stub = gfs_pb2_grpc.ChunkServerToClientStub(channel)
+#             st = clientid + "||" + chunk_handle + "|" + inp1
+#             req = gfs_pb2.String(st=st)
+#             cs_resp = stub.AddData(req).st
+#             st = chunk_handle + "|" + start_offset + "|" + numbytes
+#             req = gfs_pb2.String(st=st)
+#             cs_resp: str = stub.Read(req).st
+#             print(f"Response from chunk server {loc} {cs_resp}")
+
+#         if cs_resp.startswith("ERROR"):
+#             return -1
+#         file_content += cs_resp
+
+#     print(f"file_content: {file_content}")
 
 
 def run(command: str, file_path: str, args: list):

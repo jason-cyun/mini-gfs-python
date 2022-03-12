@@ -1,6 +1,10 @@
 # gfs-python
 mini Google File System implementation for ECS 251 Operating Systems
 
+## Installing dependencies for the implementation
+
+``` $ pip install -r requirements.txt ```
+
 # Assignment 2
 
 The chunk size being considered for this implementation is 4.
@@ -14,7 +18,7 @@ To simulate GFS, the following commands must be executed in the terminal:
 ## running the Master and chunk servers
 ``` $ python master_server.py ```
 ``` $ python chunk_server.py ```
-run in seperate terminals
+run in separate terminals
  ``` $ tree root_chunkserver
  
  root_chunkserver
@@ -105,7 +109,15 @@ This demonstrates the defined file region state.
 
 ### Read the contents of file30
 
-```python client.py read /file30 0 -1```
+```python client.py read /file30 0 -1
+
+Response from master: 34f55f46-a1be-11ec-8055-1e80a00a2c31*50052*0*4|6d37f724-a1be-11ec-8055-1e80a00a2c31*50056*0*4|6d51bbe6-a1be-11ec-8055-1e80a00a2c31*50053*0*5
+Response from chunk server 50052 hell
+Response from chunk server 50056 owor
+Response from chunk server 50053 ld
+file_content: helloworld
+
+```
 
 ## Concurrent append requests
 This demonstrates the consistent file region state.
@@ -119,7 +131,14 @@ or
 
 ### Read the contents of file31
 
-```python client.py read /file31 0 -1```
+```python client.py read /file31 0 -1
+
+Response from master: 350c5bc4-a1be-11ec-8055-1e80a00a2c31*50053*0*4|8b3480bc-a1be-11ec-8055-1e80a00a2c31*50052*0*5
+Response from chunk server 50053 good
+Response from chunk server 50052 day
+file_content: goodday
+
+```
 
 
 

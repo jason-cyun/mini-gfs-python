@@ -82,8 +82,6 @@ Response from chunk server 50053 othe
 Response from chunk server 50053 re
 file_content: hellothere```
 
-
-
 # Assignment 3
 
 To simulate this implementation, the following commands must be executed in the terminal:
@@ -91,9 +89,7 @@ To simulate this implementation, the following commands must be executed in the 
 ## Create a file
 Here, we will create 3 different files to test three different appends.
 
-```python client.py create /file30```
-```python client.py create /file31```
-```python client.py create /file32```
+```python client.py create /file30 ; python client.py create /file31 ; python client.py create /file32```
 
 ## View the root chunkserver directory structure
 The root_chunkserver directory maintains folders of each chunkserver as their respective local caches
@@ -105,8 +101,7 @@ This demonstrates the defined file region state.
 
 ### Two clients sending append requests to the same file30 consecutively
 
-```python client.py append /file30 hello```
-```python client.py append /file30 world```
+```python client.py append /file30 hello ; python client.py append /file30 world```
 
 ### Read the contents of file30
 
@@ -119,7 +114,6 @@ This demonstrates the consistent file region state.
 
 ```python concurrent_clients.py```
 or
-
 ```python client.py append /file31 good & python client.py append /file31 day```
 
 

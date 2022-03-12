@@ -105,7 +105,7 @@ This demonstrates the defined file region state.
 
 ### Two clients sending append requests to the same file30 consecutively
 
-```python client.py append /file30 hello ; python client.py append /file30 world```
+```python client.py append /file30 good ; python client.py append /file30 day```
 
 ### Read the contents of file30
 
@@ -113,11 +113,10 @@ This demonstrates the defined file region state.
 
 Output:
 ```
-Response from master: 34f55f46-a1be-11ec-8055-1e80a00a2c31*50052*0*4|6d37f724-a1be-11ec-8055-1e80a00a2c31*50056*0*4|6d51bbe6-a1be-11ec-8055-1e80a00a2c31*50053*0*5
-Response from chunk server 50052 hell
-Response from chunk server 50056 owor
-Response from chunk server 50053 ld
-file_content: helloworld
+Response from master: 9ae92e3e-a1c5-11ec-a1fd-1e80a00a2c31*50055*0*4|9e3b4996-a1c5-11ec-a1fd-1e80a00a2c31*50056*0*5
+Response from chunk server 50055 good
+Response from chunk server 50056 day
+file_content: goodday
 
 ```
 
@@ -143,7 +142,6 @@ Response from chunk server 50052 day
 file_content: goodday
 
 ```
-
 
 ## Team Members
 

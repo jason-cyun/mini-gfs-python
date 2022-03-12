@@ -1,6 +1,10 @@
 # gfs-python
 mini Google File System implementation for ECS 251 Operating Systems
 
+## Installing dependencies for the implementation
+
+``` $ pip install -r requirements.txt ```
+
 # Assignment 2
 
 The chunk size being considered for this implementation is 4.
@@ -14,7 +18,7 @@ To simulate GFS, the following commands must be executed in the terminal:
 ## running the Master and chunk servers
 ``` $ python master_server.py ```
 ``` $ python chunk_server.py ```
-run in seperate terminals
+run in separate terminals
  ``` $ tree root_chunkserver
  
  root_chunkserver
@@ -76,7 +80,7 @@ The newly appended text should be visible
 
 Here, 0 is the offset and -1 indicates the number of chunks to be read (here, it means the entire file).
 
-Output ```Response from master: bf93cc8c-a1b4-11ec-9936-0e6e89eeeb44*50052*0*4|fdd7ca3e-a1b4-11ec-9936-0e6e89eeeb44*50053*0*4|fddb0d5c-a1b4-11ec-9936-0e6e89eeeb44*50053*0*5
+Output: ```Response from master: bf93cc8c-a1b4-11ec-9936-0e6e89eeeb44*50052*0*4|fdd7ca3e-a1b4-11ec-9936-0e6e89eeeb44*50053*0*4|fddb0d5c-a1b4-11ec-9936-0e6e89eeeb44*50053*0*5
 Response from chunk server 50052 hell
 Response from chunk server 50053 othe
 Response from chunk server 50053 re
@@ -101,11 +105,20 @@ This demonstrates the defined file region state.
 
 ### Two clients sending append requests to the same file30 consecutively
 
-```python client.py append /file30 hello ; python client.py append /file30 world```
+```python client.py append /file30 good ; python client.py append /file30 day```
 
 ### Read the contents of file30
 
 ```python client.py read /file30 0 -1```
+
+Output:
+```
+Response from master: 9ae92e3e-a1c5-11ec-a1fd-1e80a00a2c31*50055*0*4|9e3b4996-a1c5-11ec-a1fd-1e80a00a2c31*50056*0*5
+Response from chunk server 50055 good
+Response from chunk server 50056 day
+file_content: goodday
+
+```
 
 ## Concurrent append requests
 This demonstrates the consistent file region state.
@@ -121,6 +134,19 @@ or
 
 ```python client.py read /file31 0 -1```
 
+Output:
+```
+Response from master: 350c5bc4-a1be-11ec-8055-1e80a00a2c31*50053*0*4|8b3480bc-a1be-11ec-8055-1e80a00a2c31*50052*0*5
+Response from chunk server 50053 good
+Response from chunk server 50052 day
+file_content: goodday
 
+```
 
+## Team Members
+
+Arindaam Roy - 920250312\
+Maanas Vohra - 920199295\
+Niharika Yeddanapudi - 920234163\
+Rohan Sood - 918972958
 

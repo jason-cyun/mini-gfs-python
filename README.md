@@ -145,10 +145,10 @@ file_content: goodday
 ```
 
 
-## Team Members:
+## Team Members
 
-Arindaam Roy
-Maanas Vohra - 920199295
-Niharika Yeddanapudi - 920234163
+Arindaam Roy\
+Maanas Vohra - 920199295\
+Niharika Yeddanapudi - 920234163\
 Rohan Sood
 

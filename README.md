@@ -37,7 +37,7 @@ run in separate terminals
 ## View the root chunkserver directory structure
 The root_chunkserver directory maintains folders of each chunkserver as their respective local caches
 
-```tree root_chunkserver
+```$ tree root_chunkserver
 root_chunkserver
 ├── 50052
 │   └── bf93cc8c-a1b4-11ec-9936-0e6e89eeeb44
@@ -51,7 +51,7 @@ root_chunkserver
 
 ## A single client sends an append request to the new file that was created
 
-```python client.py append /file2 hellothere```
+```$ python client.py append /file2 hellothere```
 
 ```
 root_chunkserver
@@ -76,7 +76,7 @@ As the length of "hellothere" > 4 (chunk size), new chunks were created
 ## Read the contents of file2
 The newly appended text should be visible
 
-```python client.py read /file2 0 -1```
+```$ python client.py read /file2 0 -1```
 
 Here, 0 is the offset and -1 indicates the number of chunks to be read (here, it means the entire file).
 
@@ -93,23 +93,23 @@ To simulate this implementation, the following commands must be executed in the 
 ## Create a file
 Here, we will create 3 different files to test three different appends.
 
-```python client.py create /file30 ; python client.py create /file31 ; python client.py create /file32```
+```$ python client.py create /file30 ; python client.py create /file31 ; python client.py create /file32```
 
 ## View the root chunkserver directory structure
 The root_chunkserver directory maintains folders of each chunkserver as their respective local caches
 
-```tree root_chunkserver```
+```$ tree root_chunkserver```
 
 ## Serial append requests
 This demonstrates the defined file region state.
 
 ### Two clients sending append requests to the same file30 consecutively
 
-```python client.py append /file30 good ; python client.py append /file30 day```
+```$ python client.py append /file30 good ; python client.py append /file30 day```
 
 ### Read the contents of file30
 
-```python client.py read /file30 0 -1```
+```$ python client.py read /file30 0 -1```
 
 Output:
 ```
@@ -117,7 +117,6 @@ Response from master: 9ae92e3e-a1c5-11ec-a1fd-1e80a00a2c31*50055*0*4|9e3b4996-a1
 Response from chunk server 50055 good
 Response from chunk server 50056 day
 file_content: goodday
-
 ```
 
 ## Concurrent append requests
@@ -125,14 +124,14 @@ This demonstrates the consistent file region state.
 
 ### Two clients sending append requests to the same file31 concurrently
 
-```python concurrent_clients.py```
+```$ python concurrent_clients.py```
 or
-```python client.py append /file31 good & python client.py append /file31 day```
+```$ python client.py append /file31 good & python client.py append /file31 day```
 
 
 ### Read the contents of file31
 
-```python client.py read /file31 0 -1```
+```$ apython client.py read /file31 0 -1```
 
 Output:
 ```
@@ -140,15 +139,14 @@ Response from master: 350c5bc4-a1be-11ec-8055-1e80a00a2c31*50053*0*4|8b3480bc-a1
 Response from chunk server 50053 good
 Response from chunk server 50052 day
 file_content: goodday
-
 ```
 
 ## Inconsistency case
 
-We randomly fail a server to bring in inconsistency.
-Please uncomment line 153-156 in ```chunk_server.py``` to bring in inconsistency. Dont forget to restart all the scripts.
+This demonstrates the inconsistent file region state. We randomly fail a server to bring in inconsistency.
+Please uncomment line 153-156 in ```chunk_server.py``` to bring in inconsistency. You will be required to restart all the scripts.
 
-Output
+Output:
 
 ```
 $ python client.py append /file1 good
@@ -161,7 +159,6 @@ Response from chunk 50057 : chunk space :4 chunk handle e881e010-a1ce-11ec-ab99-
 Response from chunk server 50057 : Added data to the chunk cache
 * Sending commit request to primary
 ERROR: failure: inconsistent data
-
 ```
 
 ```

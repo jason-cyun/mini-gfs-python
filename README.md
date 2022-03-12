@@ -11,18 +11,63 @@ To simulate GFS, the following commands must be executed in the terminal:
 
 ```$ python3 -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. ./gfs.proto```
 
+## running the Master and chunk servers
+``` $ python master_server.py ```
+``` $ python chunk_server.py ```
+run in seperate terminals
+ ``` $ tree root_chunkserver
+ 
+ root_chunkserver
+├── 50052
+├── 50053
+├── 50054
+├── 50055
+└── 50056
+
+```
+
 ## Create a file
 
-```python client.py create /file2```
+```$ python client.py create /file2```
 
 ## View the root chunkserver directory structure
 The root_chunkserver directory maintains folders of each chunkserver as their respective local caches
 
-```tree root_chunkserver```
+```tree root_chunkserver
+root_chunkserver
+├── 50052
+│   └── bf93cc8c-a1b4-11ec-9936-0e6e89eeeb44
+├── 50053
+│   └── bf93cc8c-a1b4-11ec-9936-0e6e89eeeb44
+├── 50054
+│   └── bf93cc8c-a1b4-11ec-9936-0e6e89eeeb44
+├── 50055
+└── 50056
+```
 
 ## A single client sends an append request to the new file that was created
 
 ```python client.py append /file2 hellothere```
+
+```
+root_chunkserver
+├── 50052
+│   └── bf93cc8c-a1b4-11ec-9936-0e6e89eeeb44
+├── 50053
+│   ├── bf93cc8c-a1b4-11ec-9936-0e6e89eeeb44
+│   ├── fdd7ca3e-a1b4-11ec-9936-0e6e89eeeb44
+│   └── fddb0d5c-a1b4-11ec-9936-0e6e89eeeb44
+├── 50054
+│   ├── bf93cc8c-a1b4-11ec-9936-0e6e89eeeb44
+│   ├── fdd7ca3e-a1b4-11ec-9936-0e6e89eeeb44
+│   └── fddb0d5c-a1b4-11ec-9936-0e6e89eeeb44
+├── 50055
+│   ├── fdd7ca3e-a1b4-11ec-9936-0e6e89eeeb44
+│   └── fddb0d5c-a1b4-11ec-9936-0e6e89eeeb44
+└── 50056
+
+```
+As the length of "hellothere" > 4 (chunk size), new chunks were created
 
 ## Read the contents of file2
 The newly appended text should be visible
@@ -30,6 +75,14 @@ The newly appended text should be visible
 ```python client.py read /file2 0 -1```
 
 Here, 0 is the offset and -1 indicates the number of chunks to be read (here, it means the entire file).
+
+Output ```Response from master: bf93cc8c-a1b4-11ec-9936-0e6e89eeeb44*50052*0*4|fdd7ca3e-a1b4-11ec-9936-0e6e89eeeb44*50053*0*4|fddb0d5c-a1b4-11ec-9936-0e6e89eeeb44*50053*0*5
+Response from chunk server 50052 hell
+Response from chunk server 50053 othe
+Response from chunk server 50053 re
+file_content: hellothere```
+
+
 
 # Assignment 3
 
@@ -65,6 +118,10 @@ This demonstrates the consistent file region state.
 ### Two clients sending append requests to the same file31 concurrently
 
 ```python concurrent_clients.py```
+or
+
+```python client.py append /file31 good & python client.py append /file31 day```
+
 
 ### Read the contents of file31
 

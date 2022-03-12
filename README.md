@@ -15,7 +15,7 @@ To simulate GFS, the following commands must be executed in the terminal:
 
 ```$ python3 -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. ./gfs.proto```
 
-## running the Master and chunk servers
+## Running the Master and chunk servers
 ``` $ python master_server.py ```
 ``` $ python chunk_server.py ```
 run in separate terminals

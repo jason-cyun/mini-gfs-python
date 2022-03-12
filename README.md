@@ -80,7 +80,7 @@ The newly appended text should be visible
 
 Here, 0 is the offset and -1 indicates the number of chunks to be read (here, it means the entire file).
 
-Output ```Response from master: bf93cc8c-a1b4-11ec-9936-0e6e89eeeb44*50052*0*4|fdd7ca3e-a1b4-11ec-9936-0e6e89eeeb44*50053*0*4|fddb0d5c-a1b4-11ec-9936-0e6e89eeeb44*50053*0*5
+Output: ```Response from master: bf93cc8c-a1b4-11ec-9936-0e6e89eeeb44*50052*0*4|fdd7ca3e-a1b4-11ec-9936-0e6e89eeeb44*50053*0*4|fddb0d5c-a1b4-11ec-9936-0e6e89eeeb44*50053*0*5
 Response from chunk server 50052 hell
 Response from chunk server 50053 othe
 Response from chunk server 50053 re
@@ -109,8 +109,10 @@ This demonstrates the defined file region state.
 
 ### Read the contents of file30
 
-```python client.py read /file30 0 -1
+```python client.py read /file30 0 -1```
 
+Output:
+```
 Response from master: 34f55f46-a1be-11ec-8055-1e80a00a2c31*50052*0*4|6d37f724-a1be-11ec-8055-1e80a00a2c31*50056*0*4|6d51bbe6-a1be-11ec-8055-1e80a00a2c31*50053*0*5
 Response from chunk server 50052 hell
 Response from chunk server 50056 owor
@@ -131,8 +133,10 @@ or
 
 ### Read the contents of file31
 
-```python client.py read /file31 0 -1
+```python client.py read /file31 0 -1```
 
+Output:
+```
 Response from master: 350c5bc4-a1be-11ec-8055-1e80a00a2c31*50053*0*4|8b3480bc-a1be-11ec-8055-1e80a00a2c31*50052*0*5
 Response from chunk server 50053 good
 Response from chunk server 50052 day

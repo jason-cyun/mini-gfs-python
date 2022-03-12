@@ -149,7 +149,7 @@ class ChunkServerToClientServicer(gfs_pb2_grpc.ChunkServerToClientServicer):
         clientid = request.st
 
         clientdata = self.ckser.client2data[clientid]
-        print(f"clinetdata is {clientdata}")
+        print(f"clientdata is {clientdata}")
         chunk_handle, data = clientdata[0].split("|")
         print(f"{self.port} Append {chunk_handle} {data}")
         status = self.ckser.append(clientid=clientid)

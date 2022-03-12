@@ -1,3 +1,3 @@
 import subprocess
 
-subprocess.run("python client.py append /file31 hel & python client.py append /file31 llo", shell=True)
+subprocess.run("python client.py append /file31 good & python client.py append /file31 day", shell=True)

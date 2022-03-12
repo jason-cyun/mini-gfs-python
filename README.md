@@ -15,6 +15,11 @@ To simulate GFS, the following commands must be executed in the terminal:
 
 ```python client.py create /file2```
 
+## View the root chunkserver directory structure
+The root_chunkserver directory maintains folders of each chunkserver as their respective local caches
+
+```tree root_chunkserver```
+
 ## A single client sends an append request to the new file that was created
 
 ```python client.py append /file2 hellothere```
@@ -37,7 +42,13 @@ Here, we will create 3 different files to test three different appends.
 ```python client.py create /file31```
 ```python client.py create /file32```
 
+## View the root chunkserver directory structure
+The root_chunkserver directory maintains folders of each chunkserver as their respective local caches
+
+```tree root_chunkserver```
+
 ## Serial append requests
+This demonstrates the defined file region state.
 
 ### Two clients sending append requests to the same file30 consecutively
 
@@ -49,6 +60,7 @@ Here, we will create 3 different files to test three different appends.
 ```python client.py read /file30 0 -1```
 
 ## Concurrent append requests
+This demonstrates the consistent file region state.
 
 ### Two clients sending append requests to the same file31 concurrently
 

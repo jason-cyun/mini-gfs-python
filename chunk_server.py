@@ -2,11 +2,9 @@
 Runs the servers as different processes and each server has 3 workers (threads) 
 """
 
-from http import client
 import os
-from pydoc import cli
-import re
-import sys
+import random
+import stat
 import time
 from concurrent import futures
 from multiprocessing import Pool, Process
@@ -140,13 +138,22 @@ class ChunkServerToClientServicer(gfs_pb2_grpc.ChunkServerToClientServicer):
             return gfs_pb2.String(st=str(chunk_space))
 
     def Append(self, request, context):
-        """Keeping this function in case we want to test out clint directly asking chunks to append"""
+        """Keeping this function in case we want to test out clint directly asking chunks to append
+        ** randomly retern a fail message to demonstrate inconsistency 
+        """
         # print("Wrong append call")
         # chunk_handle, data = request.st.split("|")
         # print(f"{self.port} Append {chunk_handle} {data}")
         # status = self.ckser.append(chunk_handle, data)
         # return gfs_pb2.String(st=status.e)
         clientid = request.st
+
+        # ** randomly retern a fail message to demonstrate inconsistency 
+        # !! uncomment when needed 🙏🏽
+        # rand_int = random.randint(1,3)
+        # if rand_int == 3:
+        #     status = Status(-3, "-3 ERROR: server not responding")
+        #     return gfs_pb2.String(st=str(status.v))
 
         clientdata = self.ckser.client2data[clientid]
         print(f"clientdata is {clientdata}")
@@ -187,7 +194,9 @@ class PrimaryToClientServicer(gfs_pb2_grpc.PrimaryToClientServicer):
         returns 0: success
         returns -1: fail
         returns -2: not the primary
+        returns -3: when purposely failed for inconsistency
 
+        randomly retern a fail message to demonstrate inconsistency 
         """
 
         cur_time = time.time()
@@ -211,6 +220,11 @@ class PrimaryToClientServicer(gfs_pb2_grpc.PrimaryToClientServicer):
                 stub = gfs_pb2_grpc.ChunkServerToClientStub(channel)
                 request = gfs_pb2.String(st=clientid)
                 resp = stub.Append(request).st
+                # randomly added inconsistency
+                if int(resp) == -3:
+                    ret = gfs_pb2.String(st="-3 ERROR : Inconsistency")
+                    return ret
+
                 status += int(resp)
 
                 print(f"Response from chunk server {loc} : {resp}")

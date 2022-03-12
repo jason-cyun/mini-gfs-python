@@ -143,6 +143,52 @@ file_content: goodday
 
 ```
 
+## Inconsistency case
+
+We randomly fail a server to bring in inconsistency.
+Please uncomment line 153-156 in ```chunk_server.py``` to bring in inconsistency. Dont forget to restart all the scripts.
+
+Output
+
+```
+$ python client.py append /file1 good
+Response from master: e881e010-a1ce-11ec-ab99-0e6e89eeeb44|50055|50056|50057
+Response from chunk 50055 : chunk space :4 chunk handle e881e010-a1ce-11ec-ab99-0e6e89eeeb44
+Response from chunk server 50055 : Added data to the chunk cache
+Response from chunk 50056 : chunk space :4 chunk handle e881e010-a1ce-11ec-ab99-0e6e89eeeb44
+Response from chunk server 50056 : Added data to the chunk cache
+Response from chunk 50057 : chunk space :4 chunk handle e881e010-a1ce-11ec-ab99-0e6e89eeeb44
+Response from chunk server 50057 : Added data to the chunk cache
+* Sending commit request to primary
+ERROR: failure: inconsistent data
+
+```
+
+```
+$ tree root_chunkserver
+root_chunkserver
+├── 50052
+├── 50053
+├── 50054
+├── 50055
+│   └── e881e010-a1ce-11ec-ab99-0e6e89eeeb44
+├── 50056
+│   └── e881e010-a1ce-11ec-ab99-0e6e89eeeb44
+└── 50057
+    └── e881e010-a1ce-11ec-ab99-0e6e89eeeb44 
+```
+
+```
+$ cat root_chunkserver/50055/e881e010-a1ce-11ec-ab99-0e6e89eeeb44
+good%
+
+$ cat root_chunkserver/50056/e881e010-a1ce-11ec-ab99-0e6e89eeeb44
+ (no output)
+
+$ cat root_chunkserver/50057/e881e010-a1ce-11ec-ab99-0e6e89eeeb44
+ (no output)
+```
+
 ## Team Members
 
 Arindaam Roy - 920250312\

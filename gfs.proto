@@ -8,6 +8,7 @@ service MasterServerToClient {
     rpc AppendFile(String) returns (String) {}
     rpc CreateChunk(String) returns (String) {}
     rpc ReadFile(String) returns (String) {}
+    rpc WriteFile(String) returns (String) {}
 }
 
 service ChunkServerToClient {
@@ -16,6 +17,7 @@ service ChunkServerToClient {
     rpc Append(String) returns (String) {}
     rpc Read(String) returns (String) {} 
     rpc AddData(String) returns (String) {}
+    rpc Write(String) returns (String) {}
     
 }
 

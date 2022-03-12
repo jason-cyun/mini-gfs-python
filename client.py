@@ -120,6 +120,10 @@ def append_file(file_path, input_data, clientid):
         print("All chunk servers did not write, retrying")
         append_file(file_path, input_data, uuid.uuid4().hex[:8])
 
+    elif primary_resp.startswith("-3"):
+        print("ERROR: failure: inconsistent data")
+        return -3
+
     if rem_space >= input_size:
         return 0
 

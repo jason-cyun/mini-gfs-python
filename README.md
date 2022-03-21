@@ -188,8 +188,8 @@ $ cat root_chunkserver/50057/e881e010-a1ce-11ec-ab99-0e6e89eeeb44
 
 ## Team Members
 
-Arindaam Roy - 920250312\
-Maanas Vohra - 920199295\
-Niharika Yeddanapudi - 920234163\
-Rohan Sood - 918972958
+Arindaam Roy
+Maanas Vohra 
+Niharika Yeddanapudi 
+Rohan Sood 
 

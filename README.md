@@ -189,3 +189,4 @@ $ cat root_chunkserver/50057/e881e010-a1ce-11ec-ab99-0e6e89eeeb44
 # Ref
 - [GFS pager](https://static.googleusercontent.com/media/research.google.com/en//archive/gfs-sosp2003.pdf)
 - [GFS Summary](https://melodiessim.netlify.app/gfs-summary/)
+- [awesome distribute storage](https://github.com/okhosting/awesome-storage)

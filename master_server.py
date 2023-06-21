@@ -278,7 +278,7 @@ def serve():
         MasterServerToClientServicer(master=master), server
     )
     # TODO get port from config
-    server.add_insecure_port("[::]:50051")
+    server.add_insecure_port("[::]:60051")
     server.start()
     try:
         while True:

@@ -6,8 +6,8 @@ import enum
 
 class Config:
     chunk_size: int = 4
-    master_loc: str = "50051"
-    chunkserver_locs: list = ["50052", "50053", "50054", "50055", "50056", "50057"]
+    master_loc: str = "60051"
+    chunkserver_locs: list = ["60052", "60053", "60054", "60055", "60056", "60057"]
     chunkserver_root: str = "root_chunkserver"  # root dir in chunk server
 
 
